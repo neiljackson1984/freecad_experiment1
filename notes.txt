@@ -1,0 +1,31 @@
+see [https://forum.freecad.org/viewtopic.php?f=22&t=28901&p=350160] "Debugging macros with VS 2017"
+see [https://forum.freecad.org/viewtopic.php?style=10&p=533299] "Advice requested on developing python workbench in VS Code"
+see [https://github.com/microsoft/vscode-python/issues/5660] "How do I get visual studio code to load the modules of the pyd file"
+
+& "C:/Program Files/FreeCAD 0.20/bin/python.exe" -m pip install pipenv
+& "C:/Program Files/FreeCAD 0.20/bin/python.exe" -m pipenv install
+
+
+& "C:/Program Files/FreeCAD 0.20/bin/python.exe" -m pip install pylance
+
+$env:PATH = "C:\Program Files\FreeCAD 0.20\bin;$($env:PATH)"; & "C:/Program Files/FreeCAD 0.20/bin/Scripts/pipenv.exe" install
+$env:PATH = "C:\Program Files\FreeCAD 0.20\bin;$($env:PATH)"; & "C:/Program Files/FreeCAD 0.20/bin/python.exe" -m pipenv install
+which python
+
+$($(& "C:/Program Files/FreeCAD 0.20/bin/python.exe" --version) -replace "^.*?([\d\.]+).*`$","`$1")
+
+$env:PYTHONPATH
+$env:*
+dir env:
+pwsh
+
+# struggling to create a venv with the FreeCAD-bundled python interpreter -- pipenv tends to try to find the latest version of python -- even if it is not the first python.exe on the path.
+# this works:
+$env:PATH = "C:\Program Files\FreeCAD 0.20\bin;$($env:PATH)"; & "C:/Program Files/FreeCAD 0.20/bin/python.exe" -m pipenv --python "$($(& "C:/Program Files/FreeCAD 0.20/bin/python.exe" --version) -replace "^.*?([\d\.]+).*`$","`$1")" install
+
+
+$env:PATH = "C:\Program Files\FreeCAD 0.20\bin;$($env:PATH)"; & "C:/Program Files/FreeCAD 0.20/bin/python.exe" -m pipenv --python "$($(& "C:/Program Files/FreeCAD 0.20/bin/python.exe" --version) -replace "^.*?([\d\.]+).*`$","`$1")" install
+which python
+
+& "C:/Program Files/FreeCAD 0.20/bin/python.exe" -m pip uninstall pylance
+& "https://forum.freecad.org/viewtopic.php?t=39032"
