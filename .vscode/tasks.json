@@ -1,0 +1,330 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+
+        // see [https://vscode-docs.readthedocs.io/en/stable/editor/tasks_appendix/
+    "version": "2.0.0",
+
+    "tasks": [
+        
+        // the following "fx_task" tasks are intended to be triggered by the
+        // corresponding f key. In order for this to work, you must define
+        // keybindings like the following, which you should place in vs code's
+        // keybindings.json file.: 
+        //     { "key": "f4"  ,  "command":  "workbench.action.tasks.runTask"     ,    "args": "f4_task"    }
+        { "label": "f4_task",            "dependsOn": ["run_design1_with_debugging"]                           },
+        { "label": "f7_task",            "dependsOn": ["run_rpyc_playground"]                                  },
+        { "label": "f8_task",            "dependsOn": ["reload_fusion_script_runner_addin_with_keystrokes"]    },
+
+
+        { "label": "f15_task",           "dependsOn": ["run_cell_in_terminal"]}, 
+        { "label": "f17_task",           "dependsOn": ["run_selected_text_in_terminal"]}, 
+
+        { "label": "run_selected_text_in_terminal",           "command": "${command:workbench.action.terminal.runSelectedText}"}, 
+        { "label": "run_selected_text_in_repl",               "command": "${command:editor.debug.action.selectionToRepl}" },
+        { "label": "run_cell_in_repl",         "dependsOn": ["_selectJupyterishCell", "run_selected_text_in_repl"],     "dependsOrder": "sequence"   },
+        { "label": "run_cell_in_terminal",     "dependsOn": ["_selectJupyterishCell", "run_selected_text_in_terminal"], "dependsOrder": "sequence"   },
+        { "label": "_selectJupyterishCell",   "command": "${command:selectby.regex1}" ,}, 
+
+        // regarding the f5 keybindings:
+        ////   these are the factory-default definitions for the f5 and ctrl+shift+f5 keybindings:
+        //      { "key": "f5",              "command": "workbench.action.debug.continue",  "when": "debugState == 'stopped'"   },
+        //      { "key": "f5",              "command": "workbench.action.debug.continue",  "when": "debugState == 'stopped'"   },
+        //      { "key": "ctrl+shift+f5",   "command": "workbench.action.debug.restart",   "when": "inDebugMode"               },
+
+        // for my fusion360 projects, I want f5 to trigger a debug restart when debugging is "paused" in the way that
+        // happens when a script has finished running, but not in the way that happens when we are on a break point.
+        // I believe that this state is indistinguishable from the state where a script is actively running and we are in debug mode.
+
+        // to achieve this, I add the following f5 keybinding, without deleting or modifying any of the existing f5 keybindings:
+
+        // { "key": "f5",              "command": "workbench.action.debug.restart",  "when": "inDebugMode && debugState != 'inactive' && debugState != 'stopped' && debugState != 'initializing'"   },
+
+        
+
+        {   "label": "execute_with_python",
+            "type":"shell",
+            "command": "${config:python.defaultInterpreterPath} \"${file}\""
+        },
+        {   "label": "run_rpyc_playground",
+            "type":"shell",
+            "command": "${config:python.defaultInterpreterPath} \"${workspaceFolder}${pathSeparator}rpyc_playground.py\""
+        },
+
+
+        {   "label": "reload_fusion_script_runner_addin_then_monitor_log",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "reload_fusion_script_runner_addin_with_keystrokes",
+                "monitor_fusion_script_runnner_addin_log"
+            ]
+        },
+
+        
+        {   "label":"run_freecad",
+            "type":"shell",
+            "options": {"shell": {"executable": "c:\\windows\\system32\\cmd.exe", "args": [ "/c" ]}},
+            "command": " \"  \"${config:neil.pathOfFreeCADExecutable}\" --python-path \"${config:neil.debugpyPath}\"  \"${workspaceFolder}${pathSeparator}startup.py\"  \" ",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "silent",
+                "panel":  "dedicated",
+                "showReuseMessage": false,
+                "close": false
+            }
+        },
+        
+        {   "label":"clear_fusion_crash_recovery_folder",
+            "type":"shell",
+            "command":"rm -rf \"${config:neil.pathOfFusionCrashRecoveryFolder}\"/*"
+        },
+        
+        {   "label":"ensure_that_fusion_script_runner_addin_is_installed",
+            "type":"shell",
+            "command": "echo PLEASE IMPLEMENT ME.",
+            // One potential way to install the add-in is to modify the file
+            //
+            //      "$APPDATA\Autodesk\Autodesk Fusion 360\T2TVKUYMZWD8\JSLoadedScriptsinfo"
+            //
+            //  The 'T2T...' portion of the preceeding path appears to be random
+            // and is probably specific to either the Autodesk user that is
+            // logged in to Fusion or to the version of fusion.
+            //
+            //
+            // we want to ensure the existence of an entry, in that file, that looks like the following:
+            //  {
+            //      "name": "fusion_script_runner_addin",
+            //      "path": "C:/work/fusion_programmatic_experiment/braids/fusion_script_runner_addin/fusion_script_runner_addin.py",
+            //      "isRemoved": false,
+            //      "runOnStartup": true
+            //  },
+
+            "presentation": {
+                "reveal": "silent",
+                "panel":  "dedicated",
+                "close": true
+            },
+        },
+
+        
+        {   "label":"run_fusion_and_ensure_that_fusion_script_runner_addin_is_installed",
+            "dependsOn": [
+                "ensure_that_fusion_script_runner_addin_is_installed",
+                "run_fusion"
+            ],
+            "dependsOrder": "sequence",
+            "isBackground": true
+        },
+
+
+        
+        
+        
+        // {   "label":"ensure_that_fusion_is_running",
+
+        // }
+        
+        {   "label":"run_fusion_with_debugpy_log_dir_defined",
+            "type":"shell",
+            "command": "\"${config:neil.pathOfFusionExecutable}\" --nologo",
+            "presentation": {
+                "reveal": "silent",
+                "panel":  "dedicated",
+                "showReuseMessage": false,
+                "close": false
+            },
+            "options": {
+                "env": {
+                    "DEBUGPY_LOG_DIR":"C:/work/fusion_programmatic_experiment/debugpy_log"
+                }
+            }
+        },
+        {   "label":"restart_fusion",
+            "dependsOn":["kill_fusion", "run_fusion_and_ensure_that_fusion_script_runner_addin_is_installed"],
+            "dependsOrder": "sequence"
+        },
+        {   "label":"restart_fusion_with_debugpy_log_dir_defined",
+            "dependsOn":["kill_fusion", "run_fusion_with_debugpy_log_dir_defined"],
+            "dependsOrder": "sequence"
+        },
+        // {
+        //     "label":"restart_fusion_with_debugpy_log_dir_defined",
+        //     "type":"shell",
+        //     "command": "taskkill /f /t /im Fusion360.exe & (set \"DEBUGPY_LOG_DIR=C:/work/fusion_programmatic_experiment/debugpy_log\" && start \"\" \"${config:neil.pathOfFusionExecutable}\" --nologo)",
+        //     "presentation": {"reveal": "silent"}            
+        // },
+        {   "label":"monitor_the_log",
+            "type":"shell",
+            "command": "tail -F \"${env:TEMP}${pathSeparator}fusion_script_runner_addin_log.log\"",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel":  "dedicated",
+                "showReuseMessage": false,
+                "clear": false
+            },
+            "isBackground": true
+        },
+        {   "label":"run_script_in_fusion_without_debugging",
+            "type":"shell",
+            "command": "${config:python.defaultInterpreterPath} \"${config:neil.pathOfPythonScriptToRunScriptInFusion}\"",
+            "args":[
+                "--script", "${file}",
+                "--debug", "0",
+                "--debugpy_path", "${config:neil.debugpyPath}",
+                // "--use_vscode_debugpy", "true",
+                "--addin_port", "${config:neil.fusionScriptRunnerAddinPort}",
+                "--debug_port", "${config:neil.debugPort}"
+            ]
+        },
+        {   "label":"run_script_in_fusion_with_debugging",
+            "type":"shell",
+            "command": "${config:python.defaultInterpreterPath} \"${config:neil.pathOfPythonScriptToRunScriptInFusion}\"",
+            "dependsOn": ["run_fusion_and_ensure_that_fusion_script_runner_addin_is_installed"] ,
+            // "dependsOrder": "parallel",
+            "args":[
+                "--script"                                  , "${file}"   ,                                                 
+                "--debug"                                   , "1"                                              ,      
+                "--debugpy_path"                            , "${config:neil.debugpyPath}"                     ,                               
+                //"--use_vscode_debugpy"                      , "true"                                           ,
+                "--addin_port"                              , "${config:neil.fusionScriptRunnerAddinPort}"     ,          
+                "--debug_port"                              , "${config:neil.debugPort}"                       ,         
+                "--prefix_of_submodule_not_to_be_reloaded"  , "braids.fscad"                                   ,                 
+            ],
+            "presentation": {
+                "reveal" : "silent" ,
+                "panel": "shared"
+            }
+        },
+        {   "label":"run_test_script_in_fusion_without_debugging",
+            "type":"shell",
+            "command": "${config:python.defaultInterpreterPath} \"${config:neil.pathOfPythonScriptToRunScriptInFusion}\"",
+            "args":[
+                "--script", "${workspaceFolder}${pathSeparator}test_scripts${pathSeparator}arbitrary_script_1${pathSeparator}arbitrary_script_1.py",
+                "--debug", "0",
+                "--debugpy_path", "${config:neil.debugpyPath}",
+                // "--use_vscode_debugpy", "true",
+                "--addin_port", "${config:neil.fusionScriptRunnerAddinPort}",
+                "--debug_port", "${config:neil.debugPort}"
+            ]
+        },
+        {   "label":"run_design1_with_debugging",
+            "type":"shell",
+            "command": "${config:python.defaultInterpreterPath} \"${config:neil.pathOfPythonScriptToRunScriptInFusion}\"",
+            "dependsOn": ["run_fusion_and_ensure_that_fusion_script_runner_addin_is_installed"] ,
+            // "dependsOrder": "parallel",
+            "args":[
+                "--script"                                  , "${workspaceFolder}${pathSeparator}design1.py"   ,                                                 
+                "--debug"                                   , "1"                                              ,      
+                "--debugpy_path"                            , "${config:neil.debugpyPath}"                     ,                               
+                //"--use_vscode_debugpy"                      , "true"                                           ,
+                "--addin_port"                              , "${config:neil.fusionScriptRunnerAddinPort}"     ,          
+                "--debug_port"                              , "${config:neil.debugPort}"                       ,         
+                "--prefix_of_submodule_not_to_be_reloaded"  , "braids.fscad"                                   ,                 
+            ],
+            "presentation": {
+                "reveal" : "silent" ,
+                "panel": "shared"
+            }
+        },
+        {   "label":"run_design1_without_debugging",
+            "type":"shell",
+            "command": "${config:python.defaultInterpreterPath} \"${config:neil.pathOfPythonScriptToRunScriptInFusion}\"",
+            "dependsOn": ["run_fusion_and_ensure_that_fusion_script_runner_addin_is_installed"] ,
+            // "dependsOrder": "parallel",
+            "args":[
+                "--script"                                  , "${workspaceFolder}${pathSeparator}design1.py"   ,                                                 
+                "--debug"                                   , "0"                                              ,      
+                // "--debugpy_path"                            , "${config:neil.debugpyPath}"                     ,                               
+                //"--use_vscode_debugpy"                      , "true"                                           ,
+                "--addin_port"                              , "${config:neil.fusionScriptRunnerAddinPort}"     ,          
+                // "--debug_port"                              , "${config:neil.debugPort}"                       ,         
+                "--prefix_of_submodule_not_to_be_reloaded"  , "braids.fscad"                                   ,                 
+            ],
+            "presentation": {
+                "reveal" : "silent" ,
+                "panel": "shared"
+            }
+        },
+        {   "label":"python_interactive",
+            "type":"shell",
+            "command": "${config:python.defaultInterpreterPath}"
+        },
+        {   "label":"make_vscode_settings_file",
+            "detail": "",
+            // Programmatically determines the path of the fusion executable and
+            // the path of the debugpy executable (both of which tend to change
+            // as a result of fusion and vscode, respectively, automatically
+            // updating themselves), and inject these paths in the appropriate
+            // place in the vscode settings file.
+            "command": "python", "args":["${workspaceFolder}${pathSeparator}.vscode${pathSeparator}make_vscode_settings_file.py"],
+            "runOptions":{
+                "runOn": "folderOpen"
+            }
+        },
+        {   "label":"hello_world",
+            "type":"shell",
+            // "command": "echo ${config:python.defaultInterpreterPath}",
+            // "command": "echo ${config:python.analysis.symbolsHierarchyDepthLimit}",
+            // "command": "echo here it is ${config:python.analysis}",
+            // "command": "echo here it is \"${config:neil.debugpyPath}\" \"${config:neil.pathOfFusionInstallDirectory}\"",
+            // "command": "echo here it is ${config:neil.pathOfFusionInstallDirectory}",
+            // "command": "echo here it is ${config:neil.x}",
+            // "command": "echo here it is ${config:python.autoComplete.extraPaths}",
+            // "command": "echo here it is ${config:python.autoComplete.extraPaths}",
+            // "command": "echo here it is $(${config:python.defaultInterpreterPath} \"${workspaceFolder}${pathSeparator}fusion_script_runner_addin${pathSeparator}get_vscode_debugpy_path.py\")",
+            // "command": "echo here it is ${command:extensions.getExtension} ",
+            // "command": "echo here it is ${config:python.extensionPath} ",
+            // "command": "echo here it is ${command:workbench.action.tasks.get_debugpy_path} ",
+            // "command": "echo here it is ${execPath}",
+            // "command": "echo here it is ${input:debugpy_path}",
+            // "command": "echo here it is ${extensions.getExtension(\"python\").extensionPath}",
+            // "command": "echo here it is terminal.integrated.shell.windows: ${config:terminal.integrated.shell.windows}",
+            "command": "echo debugState is \"${debugState}\"",
+
+            "options": {"shell": {"executable": "C:\\cygwin64\\bin\\bash.exe","args": ["-c"]}},
+            "presentation": { "panel":  "dedicated"}
+        },
+        // {   "label":"get_debugpy_path",
+        //     "type":"shell",
+        //     // "command": "echo ${config:python.defaultInterpreterPath}",
+        //     // "command": "echo ${config:python.analysis.symbolsHierarchyDepthLimit}",
+        //     // "command": "echo here it is ${config:python.analysis}",
+        //     // "command": "echo here it is ${config:neil.debugpyPath}",
+        //     // "command": "echo here it is ${config:neil.x}",
+        //     // "command": "echo here it is ${config:python.autoComplete.extraPaths}",
+        //     // "command": "echo here it is $(${config:python.defaultInterpreterPath} \"${workspaceFolder}${pathSeparator}fusion_script_runner_addin${pathSeparator}get_vscode_debugpy_path.py\")",
+        //     // "command": "echo here it is ${command:extensions.getExtension} ",
+        //     // "command": "echo here it is ${config:python.extensionPath} ",
+        //     "command": "${config:python.defaultInterpreterPath} \"${workspaceFolder}${pathSeparator}fusion_script_runner_addin${pathSeparator}get_vscode_debugpy_path.py\"",
+        //     // "command": "echo here it is ${execPath}",
+        //     // "command": "echo here it is ${input:debugpy_path}",
+        //     // "command": "echo here it is ${extensions.getExtension(\"python\").extensionPath}",
+        //     // "command": "echo here it is $(echo ahoy)",
+
+        //     // "options": {"shell": {"executable": "C:\\cygwin64\\bin\\bash.exe","args": ["-c"]}}
+        //     "presentation": {"reveal" : "silent" ,  "panel":  "dedicated"}
+        // }
+    ],
+    // "inputs": [
+    // //   {
+    // //     "id": "terminate",
+    // //     "type": "command",
+    // //     "command": "workbench.action.tasks.terminate",
+    // //     "args": "terminateAll"
+    // //   }
+    //     {
+    //         "id": "debugpy_path",
+    //         "type": "command",
+    //         // "command": "${config:python.defaultInterpreterPath} \"${workspaceFolder}${pathSeparator}fusion_script_runner_addin${pathSeparator}get_vscode_debugpy_path.py\""
+    //         // "command": "workbench.extensions.getExtension(\"python\").extensionPath"
+    //         // "command": "extensions.getExtension",
+    //         "command": "workbench.action.tasks.runTask",
+            
+    //         //"command": "workbench.extensions.search",
+    //         "args": "get_debugpy_path"
+    //     }
+    // ]
+
+}
